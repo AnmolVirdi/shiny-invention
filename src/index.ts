@@ -434,7 +434,7 @@ export async function main() {
 }
 
 async function configureCronJob() {
-  const schedule = '0 0 * * *'
+  const schedule = '*/10 * * * *'
   console.log(`Creating Cron Job with schedule ${schedule} ...`)
   new CronJob(schedule, run, null, true, 'America/Los_Angeles')
   console.log('Cron Job Created.')
