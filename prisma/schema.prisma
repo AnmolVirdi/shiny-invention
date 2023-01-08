@@ -1,0 +1,132 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Firearm {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  model       String
+  price       String
+  type        String
+  itemNO      String        @unique
+  description String
+  specs       FirearmSpec[]
+  link        String?
+}
+
+model Part {
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  model       String
+  price       String
+  type        String
+  itemNO      String     @unique
+  description String
+  specs       PartSpec[]
+  link        String?
+}
+
+model Specs {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  attribute String?
+  value     String?
+  // firearm Firearm @relation(fields: [firearmId], references: [id])
+  firearmId String  @unique @db.ObjectId
+}
+
+model FirearmSpec {
+  id                  String  @id @default(auto()) @map("_id") @db.ObjectId
+  mountingSystem      String?
+  caliber             String?
+  muzzleThread        String?
+  barrelLength        String?
+  barrelProfile       String?
+  productWeight       String?
+  length              String?
+  magazine            String?
+  case                String?
+  manufacturer        String?
+  gasSystem           String?
+  continuousUpperRail String?
+  freeFloat           String?
+  barrelNut           String?
+  firearm             Firearm @relation(fields: [firearmId], references: [id])
+  firearmId           String  @unique @db.ObjectId
+}
+
+model PartSpec {
+  id                                   String  @id @default(auto()) @map("_id") @db.ObjectId
+  mountingSystem                       String?
+  attachmentStyle                      String?
+  caliber                              String?
+  muzzleThread                         String?
+  barrelLength                         String?
+  barrelProfile                        String?
+  productWeight                        String?
+  length                               String?
+  magazine                             String?
+  case                                 String?
+  manufacturer                         String?
+  manufProcess                         String?
+  gasSystem                            String?
+  railLength                           String?
+  width                                String?
+  height                               String?
+  twistRate                            String?
+  material                             String?
+  outsideFinish                        String?
+  insideFinish                         String?
+  diameterAtGasPort                    String?
+  barrelExtension                      String?
+  weight                               String?
+  insideDiameter                       String?
+  integratedSlingSwivelAttachmentPoint String?
+  continuousUpperRail                  String?
+  freeFloat                            String?
+  barrelNut                            String?
+  furnitureColor                       String?
+  firearm                              Part    @relation(fields: [firearmId], references: [id])
+  firearmId                            String  @unique @db.ObjectId
+}
+
+model Manufacturer {
+  id                   String  @id @default(auto()) @map("_id") @db.ObjectId
+  manufacturer         String  @default("DanielDefense")
+  primaryOfficeAddress String?
+  countryOfOrigin      String?
+}
+
+model Vendor {
+  id                   String  @id @default(auto()) @map("_id") @db.ObjectId
+  vendor               String  @unique @default("DanielDefense")
+  website              String?
+  primaryOfficeAddress String?
+}
+
+model Address {
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  address1 String?
+  address2 String?
+  city     String?
+  state    String?
+  zipCode  String?
+  country  String?
+}
+
+model Listing {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  price     String
+  firearmId String?  @unique @db.ObjectId
+  partId    String?  @unique @db.ObjectId
+  inStock   Boolean?
+  vendorId  String?  @unique @db.ObjectId
+  currency  String   @default("USD")
+  link      String?
+}

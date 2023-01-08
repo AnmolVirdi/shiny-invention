@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+
+  app:
+    build: .
+    volumes:
+      - .:/app
+    command: npm run dev
+    environment:
+      DATABASE_URL: "mongodb+srv://lavishgoyal:laviece@eceblog.pgn6t.mongodb.net/prismafirearmapi?retryWrites=true&w=majority"
+      PORT: "8080"
+      RUN_ON_STARTUP: "true"
+      PUPPETEER_CONFIG_EXECUTABLE_PATH: ""
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    ports:
+      - 27017:27017
+
+  mongo-express:
+    image: mongo-express
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: root
+      ME_CONFIG_MONGODB_URL: mongodb+srv://lavishgoyal:laviece@eceblog.pgn6t.mongodb.net/prismafirearmapi?retryWrites=true&w=majority
+    depends_on:
+      - mongo

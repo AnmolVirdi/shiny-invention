@@ -1,0 +1,88 @@
+name: Build, Test, and Push Image
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Dockerfile'
+      - 'package.*'
+      - '*-lock.yaml'
+      - 'babel.config.js*'
+      - 'tsconfig.json'
+      - 'src/**'
+      - 'prisma/**'
+      - '.github/workflows/**'
+
+env:
+  REGISTRY_NAME: registry.digitalocean.com/firearmapi
+  IMAGE_NAME: daemon
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test using Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '18'
+      - run: npm install -g pnpm
+      - run: pnpm install
+      - run: pnpm test:ci
+
+      - name: Tests ✅
+        if: ${{ success() }}
+        run: |
+          curl --request POST \
+          --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }} \
+          --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+          --header 'content-type: application/json' \
+          --data '{
+            "context": "tests",
+            "state": "success",
+            "description": "Tests passed",
+            "target_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          }'
+
+      - name: Tests 🚨
+        if: ${{ failure() }}
+        run: |
+          curl --request POST \
+          --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }} \
+          --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+          --header 'content-type: application/json' \
+          --data '{
+            "context": "tests",
+            "state": "failure",
+            "description": "Tests failed",
+            "target_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          }'
+
+  build:
+    needs: [test]
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout main
+      uses: actions/checkout@main
+
+    - name: Install doctl
+      uses: digitalocean/action-doctl@v2
+      with:
+        token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+    - name: Build container image
+      run: docker build -t ${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:latest .
+      # this to tag with sha: $(echo $GITHUB_SHA | head -c7)
+
+    - name: Log in to DigitalOcean Container Registry with short-lived credentials
+      run: doctl registry login --expiry-seconds 1200
+
+    - name: Push image to DigitalOcean Container Registry
+      run: docker push ${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:latest
+
+# for DigitalOcean kubernetes deploys: https://github.com/digitalocean/sample-push-to-deploy-doks
+

@@ -1,0 +1,23 @@
+alerts:
+- rule: DEPLOYMENT_FAILED
+- rule: DOMAIN_FAILED
+name: firearmapi-app
+region: sfo
+services:
+- dockerfile_path: Dockerfile
+  envs:
+  - key: DATABASE_URL
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:9X7wJlbGJo6HcD/HtQwyQrGAZvJfZ8Ia:vfaIRCguR0zcsHNrRBP3HzD7CBM0n5OdWstxXp+ZpPsTAOQF+8mVw8K1q4HEMzDkAxr1xBxRzg85ipzQS28k7vqfJgi8P7/1gha2bnFlaEE7fWmrTOU+aUjhNg6Gssc4RwcFgwFV3tKYCQ4=]
+  git:
+    branch: main
+    repo_clone_url: https://github.com/Stactica/firearmapi-scraper.git
+  http_port: 8080
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  name: firearmapi-scraper
+  routes:
+  - path: /
+  source_dir: /
+
